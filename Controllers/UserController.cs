@@ -2,6 +2,7 @@ using android_backend.Models;
 using Microsoft.AspNetCore.Mvc;
 using android_backend.Repositories;
 using android_backend.Helper;
+using Microsoft.AspNetCore.Authorization;
 
 namespace android_backend.Controllers;
 
@@ -11,10 +12,12 @@ public class UserController : ControllerBase
 {
 
     private readonly UserRepository _repository;
+    private readonly JwtHelper _jwtHelper;
 
-    public UserController(UserRepository repository)
+    public UserController(UserRepository repository, JwtHelper jwtHelper)
     {
         _repository = repository;
+        _jwtHelper = jwtHelper;
     }
 
     /// <summary>
@@ -22,8 +25,8 @@ public class UserController : ControllerBase
     /// </summary>
     /// <param name="parameter">User</param>
     /// <returns></returns>
-    [HttpPost]
-    public IActionResult Insert([FromBody] User parameter)
+    [HttpPost, AllowAnonymous]
+    public IActionResult Create([FromBody] User parameter)
     {
         if (_repository.FindByUsername(parameter.username) != null)
             return Ok("Username has been used.");
@@ -41,10 +44,25 @@ public class UserController : ControllerBase
     /// get all of users
     /// </summary>
     /// <returns></returns>
-    [HttpGet]
+    [HttpGet, Authorize(Roles = "admin")]
     public List<User> GetList()
     {
         return _repository.FindAll();
+    }
+
+    /// <summary>
+    /// Login
+    /// </summary>
+    /// <returns></returns>
+    [HttpPost("Login"), AllowAnonymous]
+    public ActionResult<string> Login([FromForm] string username, [FromForm] string password)
+    {
+        User user = _repository.FindByUsername(username);
+        if (user != null && user.password.Equals(MD5Helper.hash(password)))
+            return Ok(_jwtHelper.GenerateToken(username));
+        else
+            return BadRequest();
+
     }
 
 }
