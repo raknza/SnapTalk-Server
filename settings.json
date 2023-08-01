@@ -1,0 +1,6 @@
+{
+    "ConnectionStrings": {
+        "DefaultConnection": "server=127.0.0.1;port=2202;user id=root;password=rootroot;database=android;charset=utf8;",
+        "MySqlVersion": "8.0.29"
+    }
+}
