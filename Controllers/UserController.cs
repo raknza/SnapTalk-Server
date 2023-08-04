@@ -25,11 +25,11 @@ public class UserController : ControllerBase
     /// </summary>
     /// <param name="parameter">User</param>
     /// <returns></returns>
-    [HttpPost, AllowAnonymous]
+    [HttpPost("register"), AllowAnonymous]
     public IActionResult Create([FromBody] User parameter)
     {
         if (_repository.FindByUsername(parameter.username) != null)
-            return Ok("Username has been used.");
+            return Conflict(new { message = "Username has been used." });
         _repository.Create(new User
         {
             id = 0,
@@ -38,28 +38,55 @@ public class UserController : ControllerBase
             email = parameter.email,
             avatar = parameter.avatar
         });
-        return Ok();
+        return Ok(new { message = "Success" });
     }
+
+    /// <summary>
+    /// get a user
+    /// </summary>
+    /// <returns></returns>
+    [HttpGet("{username}"), Authorize(Roles = "user")]
+    public IActionResult GetUser(string username)
+    {
+        return Ok(_repository.FindByUsername(username));
+    }
+
     /// <summary>
     /// get all of users
     /// </summary>
     /// <returns></returns>
-    [HttpGet, Authorize(Roles = "admin")]
+    [HttpGet, AllowAnonymous]
     public List<User> GetList()
     {
         return _repository.FindAll();
     }
 
     /// <summary>
+    /// update user information
+    /// </summary>
+    /// <returns></returns>
+    [HttpPut("{username}"), Authorize(Roles = "user")]
+    public IActionResult UpdateUser(string username, [FromForm] string? password, [FromForm] string? email, [FromForm] string? avatar, [FromForm] string? profile)
+    {
+        User user = _repository.FindByUsername(username);
+        user.password = password == null ? user.password : MD5Helper.hash(password);
+        user.email = email ?? user.email;
+        user.avatar = avatar ?? user.avatar;
+        user.profile = profile ?? user.profile;
+        _repository.Update(user);
+        return Ok();
+    }
+
+    /// <summary>
     /// Login
     /// </summary>
     /// <returns></returns>
-    [HttpPost("Login"), AllowAnonymous]
-    public ActionResult<string> Login([FromForm] string username, [FromForm] string password)
+    [HttpPost("login"), AllowAnonymous]
+    public IActionResult Login([FromForm] string username, [FromForm] string password)
     {
         User user = _repository.FindByUsername(username);
         if (user != null && user.password.Equals(MD5Helper.hash(password)))
-            return Ok(_jwtHelper.GenerateToken(username));
+            return Ok(new { token = _jwtHelper.GenerateToken(username) });
         else
             return BadRequest();
 

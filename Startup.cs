@@ -16,7 +16,6 @@ namespace android_backend
 
         public void ConfigureServices(IServiceCollection services)
         {
-            //Console.WriteLine("connect!!!!");
             services.AddScoped<UserRepository, UserRepository>();
             services.AddSingleton<JwtHelper>();
             services.BuildServiceProvider().GetService<JwtHelper>().addService(services);

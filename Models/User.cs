@@ -11,5 +11,6 @@ public class User
     public String password { get; set; }
     public String? email { get; set; }
     public String? avatar { get; set; }
+    public String? profile { get; set; }
 
 }
