@@ -1,8 +1,8 @@
 using System.Reflection;
-using System.Security.Cryptography.X509Certificates;
 using android_backend.Filter;
 using System.Net;
 using Microsoft.OpenApi.Models;
+
 
 var builder = WebApplication.CreateBuilder(args);
 var startup = new android_backend.Startup(builder.Configuration);
@@ -36,7 +36,7 @@ builder.WebHost.UseKestrel(options =>
         options.ListenAnyIP(5000); // HTTP 
         options.ListenAnyIP(5001, listenOptions =>
         {
-            listenOptions.UseHttps("certificate.pfx", "abc");
+            listenOptions.UseHttps("/app/cert.pfx", "abc");
         });
     });
 
@@ -45,10 +45,13 @@ ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
 ServicePointManager.ServerCertificateValidationCallback +=
  (sender, cert, chain, sslPolicyErrors) => true;
 
+
+
 var app = builder.Build();
 //app.UseMvcWithDefaultRoute();
 
 // Configure the HTTP request pipeline.
+
 
 app.UseSwagger();
 app.UseSwaggerUI();

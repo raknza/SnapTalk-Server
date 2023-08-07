@@ -25,20 +25,29 @@ public class UserController : ControllerBase
     /// </summary>
     /// <param name="parameter">User</param>
     /// <returns></returns>
-    [HttpPost("register"), AllowAnonymous]
-    public IActionResult Create([FromBody] User parameter)
+    [HttpPost("registration"), AllowAnonymous]
+    public async Task<IActionResult> CreateAsync([FromForm] User parameter)
     {
         if (_repository.FindByUsername(parameter.username) != null)
-            return Conflict(new { message = "Username has been used." });
-        _repository.Create(new User
+            return Conflict();
+        User user = new User
         {
             id = 0,
             username = parameter.username,
             password = MD5Helper.hash(parameter.password),
             email = parameter.email,
             avatar = parameter.avatar
-        });
-        return Ok(new { message = "Success" });
+        };
+        _repository.Create(user);
+        try
+        {
+            return Ok(new { message = "Success", token = _jwtHelper.GenerateToken(parameter.username) });
+        }
+        catch (Exception ex)
+        {
+            return BadRequest($"Error adding user: {ex.Message}");
+        }
+
     }
 
     /// <summary>
@@ -48,14 +57,16 @@ public class UserController : ControllerBase
     [HttpGet("{username}"), Authorize(Roles = "user")]
     public IActionResult GetUser(string username)
     {
-        return Ok(_repository.FindByUsername(username));
+        User user = _repository.FindByUsername(username);
+        user.password = "";
+        return Ok(user);
     }
 
     /// <summary>
     /// get all of users
     /// </summary>
     /// <returns></returns>
-    [HttpGet, AllowAnonymous]
+    [HttpGet, Authorize(Roles = "admin")]
     public List<User> GetList()
     {
         return _repository.FindAll();
@@ -88,7 +99,7 @@ public class UserController : ControllerBase
         if (user != null && user.password.Equals(MD5Helper.hash(password)))
             return Ok(new { token = _jwtHelper.GenerateToken(username) });
         else
-            return BadRequest();
+            return Unauthorized();
 
     }
 

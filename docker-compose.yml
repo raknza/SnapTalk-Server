@@ -1,0 +1,49 @@
+# Please refer https://aka.ms/HTTPSinContainer on how to setup an https developer certificate for your ASP .NET Core service.
+
+version: '3.4'
+
+services:
+  webapi:
+    image: android-backend
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+    ports:
+      - "${WEB_PORT}:5001"
+      - "${MQTT_PORT}:1883"
+    volumes:
+      - ./conf.d/https/:/https/
+    depends_on:
+      - db
+
+  db:
+    image: mysql
+    ports:
+      - "${DB_PORT}:3306"
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
+    volumes:
+      - mysql:/var/lib/mysql
+
+  # mosquitto:
+  #   image: my-eclipse-mosquitto
+  #   build:
+  #     context: .
+  #     dockerfile: ./mqtt-server/dockerfile
+  #     args:
+  #       - MQTT_PASSWORD=${MQTT_PASSWORD}
+  #   restart: always
+  #   ports:
+  #     - "${MQTT_PORT}:1883"
+  #   volumes:
+  #     - mosquitto_data:/mosquitto/data
+  #     - mosquitto_log:/mosquitto/log
+
+volumes:
+  mosquitto_data:
+  mosquitto_config:
+  mosquitto_log:
+  mysql: {}
