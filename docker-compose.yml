@@ -28,22 +28,6 @@ services:
     volumes:
       - mysql:/var/lib/mysql
 
-  # mosquitto:
-  #   image: my-eclipse-mosquitto
-  #   build:
-  #     context: .
-  #     dockerfile: ./mqtt-server/dockerfile
-  #     args:
-  #       - MQTT_PASSWORD=${MQTT_PASSWORD}
-  #   restart: always
-  #   ports:
-  #     - "${MQTT_PORT}:1883"
-  #   volumes:
-  #     - mosquitto_data:/mosquitto/data
-  #     - mosquitto_log:/mosquitto/log
 
 volumes:
-  mosquitto_data:
-  mosquitto_config:
-  mosquitto_log:
   mysql: {}
