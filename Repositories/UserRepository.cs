@@ -51,5 +51,22 @@ namespace android_backend.Repositories
         {
             return _context.User.ToList<User>();
         }
+
+        public IEnumerable<ContactUsers> FindContactUsers(String username)
+        {
+            return from user in _context.User
+                   join contact in _context.Contact
+                   on user.id equals contact.contactUserId
+                   where contact.userId == _context.User.FirstOrDefault(u => u.username == username).id
+                   select new ContactUsers
+                   {
+                       id = user.id,
+                       username = user.username,
+                       name = user.name,
+                       email = user.email,
+                       avatar = user.avatar,
+                       profile = user.profile
+                   };
+        }
     }
 }

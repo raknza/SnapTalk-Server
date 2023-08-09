@@ -20,13 +20,13 @@ public class JwtHelper
         signKey = new RsaSecurityKey(rsa);
     }
 
-    public string GenerateToken(string userName, int expireMinutes = 30)
+    public string GenerateToken(string username, int expireMinutes = 30)
     {
         String issuer = configuration.GetValue<string>("JwtSettings:Issuer");
 
         List<Claim> claims = new List<Claim>();
 
-        claims.Add(new Claim(JwtRegisteredClaimNames.Sub, userName)); // User.Identity.Name
+        claims.Add(new Claim(JwtRegisteredClaimNames.Sub, username)); // User.Identity.Name
         claims.Add(new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())); // JWT ID
 
 

@@ -11,13 +11,13 @@ namespace android_backend.Controllers;
 public class UserController : ControllerBase
 {
 
-    private readonly UserRepository _repository;
-    private readonly JwtHelper _jwtHelper;
+    private readonly UserRepository userRepository;
+    private readonly JwtHelper jwtHelper;
 
-    public UserController(UserRepository repository, JwtHelper jwtHelper)
+    public UserController(UserRepository userRepository, JwtHelper jwtHelper)
     {
-        _repository = repository;
-        _jwtHelper = jwtHelper;
+        this.userRepository = userRepository;
+        this.jwtHelper = jwtHelper;
     }
 
     /// <summary>
@@ -26,27 +26,22 @@ public class UserController : ControllerBase
     /// <param name="parameter">User</param>
     /// <returns></returns>
     [HttpPost("registration"), AllowAnonymous]
-    public async Task<IActionResult> CreateAsync([FromForm] User parameter)
+    public IActionResult Create([FromForm] User parameter)
     {
-        if (_repository.FindByUsername(parameter.username) != null)
+        if (userRepository.FindByUsername(parameter.username) != null)
             return Conflict();
         User user = new User
         {
             id = 0,
             username = parameter.username,
+            name = parameter.username,
             password = MD5Helper.hash(parameter.password),
             email = parameter.email,
             avatar = parameter.avatar
+
         };
-        _repository.Create(user);
-        try
-        {
-            return Ok(new { message = "Success", token = _jwtHelper.GenerateToken(parameter.username) });
-        }
-        catch (Exception ex)
-        {
-            return BadRequest($"Error adding user: {ex.Message}");
-        }
+        userRepository.Create(user);
+        return Ok(new { message = "Success", token = jwtHelper.GenerateToken(parameter.username) });
 
     }
 
@@ -57,7 +52,7 @@ public class UserController : ControllerBase
     [HttpGet("{username}"), Authorize(Roles = "user")]
     public IActionResult GetUser(string username)
     {
-        User user = _repository.FindByUsername(username);
+        User user = userRepository.FindByUsername(username);
         user.password = "";
         return Ok(user);
     }
@@ -69,7 +64,7 @@ public class UserController : ControllerBase
     [HttpGet, Authorize(Roles = "admin")]
     public List<User> GetList()
     {
-        return _repository.FindAll();
+        return userRepository.FindAll();
     }
 
     /// <summary>
@@ -77,14 +72,15 @@ public class UserController : ControllerBase
     /// </summary>
     /// <returns></returns>
     [HttpPut("{username}"), Authorize(Roles = "user")]
-    public IActionResult UpdateUser(string username, [FromForm] string? password, [FromForm] string? email, [FromForm] string? avatar, [FromForm] string? profile)
+    public IActionResult UpdateUser(string username, [FromForm] string? password, [FromForm] string? name, [FromForm] string? email, [FromForm] string? avatar, [FromForm] string? profile)
     {
-        User user = _repository.FindByUsername(username);
+        User user = userRepository.FindByUsername(username);
         user.password = password == null ? user.password : MD5Helper.hash(password);
+        user.name = name ?? user.name;
         user.email = email ?? user.email;
         user.avatar = avatar ?? user.avatar;
         user.profile = profile ?? user.profile;
-        _repository.Update(user);
+        userRepository.Update(user);
         return Ok();
     }
 
@@ -95,9 +91,9 @@ public class UserController : ControllerBase
     [HttpPost("login"), AllowAnonymous]
     public IActionResult Login([FromForm] string username, [FromForm] string password)
     {
-        User user = _repository.FindByUsername(username);
+        User user = userRepository.FindByUsername(username);
         if (user != null && user.password.Equals(MD5Helper.hash(password)))
-            return Ok(new { token = _jwtHelper.GenerateToken(username) });
+            return Ok(new { token = jwtHelper.GenerateToken(username) });
         else
             return Unauthorized();
 
