@@ -27,7 +27,7 @@ namespace android_backend.Mqtt
         {
             _repository = _serviceProvider.GetRequiredService<UserRepository>();
             User user = _repository.FindByUsername(args.Username);
-            if (user == null || !user.password.Equals(MD5Helper.hash(args.Password)))
+            if (user == null || !user.password.Equals(MD5Helper.Hash(args.Password)))
             {
                 args.ReasonCode = MqttConnectReasonCode.BadUserNameOrPassword;
                 return Task.CompletedTask;

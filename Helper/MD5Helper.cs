@@ -3,7 +3,7 @@ namespace android_backend.Helper
 {
     public static class MD5Helper
     {
-        public static string hash(this string str)
+        public static string Hash(this string str)
         {
             using (var cryptoMD5 = System.Security.Cryptography.MD5.Create())
             {

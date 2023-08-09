@@ -13,5 +13,4 @@ public class User
     public String? email { get; set; }
     public String? avatar { get; set; }
     public String? profile { get; set; }
-
 }

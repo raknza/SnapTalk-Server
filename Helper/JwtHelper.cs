@@ -55,7 +55,7 @@ public class JwtHelper
         return serializeToken;
     }
 
-    public void addService(IServiceCollection services)
+    public void AddService(IServiceCollection services)
     {
         JwtSecurityTokenHandler.DefaultInboundClaimTypeMap.Clear();
         services
