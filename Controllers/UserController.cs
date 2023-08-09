@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using android_backend.Service;
 using android_backend.Helper;
 using Microsoft.AspNetCore.Authorization;
+using android_backend.Filter;
 
 namespace android_backend.Controllers;
 
@@ -88,6 +89,20 @@ public class UserController : ControllerBase
         }
         return Unauthorized(); ;
 
+    }
+
+    /// <summary>
+    /// Check if the provided JWT token is valid for the authenticated user.
+    /// </summary>
+    /// <remarks>
+    /// Validates the JWT token associated with the authenticated user against the Redis cache.
+    /// </remarks>
+    /// <returns>Returns an OK response with a boolean indicating token validity.</returns>
+    [HttpGet("auth"), AllowAnonymous]
+    [ServiceFilter(typeof(JwtAuthenticationFilter))]
+    public IActionResult CheckAuth()
+    {
+        return Ok( new { isTokenValid = (Boolean)HttpContext.Items["isTokenValid"] });
     }
 
 }

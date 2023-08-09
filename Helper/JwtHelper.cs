@@ -5,14 +5,20 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 namespace android_backend.Helper;
 
+using android_backend.Service;
+using DotNetEnv;
+
 public class JwtHelper
 {
     private readonly IConfiguration configuration;
     private RsaSecurityKey signKey;
 
-    public JwtHelper(IConfiguration configuration)
+    private readonly EnvHelper envHelper;
+    private readonly RedisService redisService;
+    public JwtHelper(IConfiguration configuration,RedisService redisService)
     {
         this.configuration = configuration;
+        this.redisService = redisService;
         String privateKey = configuration.GetValue<string>("JwtSettings:PrivateKey");
         byte[] privateKeyBytes = Convert.FromBase64String(privateKey);
         RSA rsa = RSA.Create(2048);
@@ -78,10 +84,38 @@ public class JwtHelper
 
                     ValidateIssuerSigningKey = false,
 
-                    IssuerSigningKey = new RsaSecurityKey(signKey.Rsa.ExportParameters(false))
+                    IssuerSigningKey = new RsaSecurityKey(signKey.Rsa.ExportParameters(false))           
+                    
+                };
+
+                options.Events = new JwtBearerEvents
+                {
+                    OnTokenValidated = async context =>
+                    {
+                        string authorizationHeader = context.Request.Headers["Authorization"];
+                        if (!string.IsNullOrEmpty(authorizationHeader) && authorizationHeader.StartsWith("Bearer "))
+                        {
+                            string jwt = authorizationHeader.Substring("Bearer ".Length);
+                            string username = context.Principal.Identity.Name;
+
+                            bool isInRedis = IsInRedis(username, jwt);
+                            if (!isInRedis)
+                            {
+                                context.Fail("JWT not found in Redis.");
+                            }
+                        }
+                    }
                 };
             });
 
         services.AddAuthorization();
+    }
+
+    public Boolean IsInRedis(String username, String jwt){
+        String token = redisService.GetString(username);
+        if(token == null || token.Equals(jwt) == false)
+            return false;
+        else
+            return true;
     }
 }

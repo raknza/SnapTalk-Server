@@ -4,6 +4,7 @@ using android_backend.Models;
 using android_backend.Repositories;
 using android_backend.Service;
 using Microsoft.EntityFrameworkCore;
+using android_backend.Filter;
 
 namespace android_backend
 {
@@ -24,7 +25,10 @@ namespace android_backend
             services.AddScoped<ContactRepository, ContactRepository>();
             services.AddScoped<UserService, UserService>();
             services.AddScoped<ContactService, ContactService>();
+            services.AddScoped<JwtAuthenticationFilter>();
+            services.AddSingleton<EnvHelper>();
             services.AddSingleton<JwtHelper>();
+            services.AddSingleton<RedisService>();
             services.BuildServiceProvider().GetService<JwtHelper>().AddService(services);
             services.AddDbContextPool<MyDbContext>(options =>
             {

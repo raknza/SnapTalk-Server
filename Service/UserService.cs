@@ -13,16 +13,18 @@ public class UserService
 {
     private readonly UserRepository userRepository;
     private readonly JwtHelper jwtHelper;
+    private readonly RedisService redisService;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="UserService"/> class.
     /// </summary>
     /// <param name="userRepository">The user repository.</param>
     /// <param name="jwtHelper">The JWT helper.</param>
-    public UserService(UserRepository userRepository, JwtHelper jwtHelper)
+    public UserService(UserRepository userRepository, JwtHelper jwtHelper, RedisService redisService)
     {
         this.userRepository = userRepository;
         this.jwtHelper = jwtHelper;
+        this.redisService = redisService;
     }
 
 
@@ -107,11 +109,25 @@ public class UserService
     {
         User user = userRepository.FindByUsername(username);
         if (user != null && user.password.Equals(MD5Helper.Hash(password))){
-            return new LoginResult(true,jwtHelper.GenerateToken(username));
+            LoginResult result = new LoginResult(true,jwtHelper.GenerateToken(username));
+            redisService.SetString(username,result.token);
+            return result;
         }
         else{
             return new LoginResult(false,null);
         }
+    }
+
+
+    /// <summary>
+    /// Check if the provided JWT token is valid in the Redis cache for the given user.
+    /// </summary>
+    /// <param name="username">The username of the user.</param>
+    /// <param name="jwt">The JWT token to check.</param>
+    /// <returns>Returns true if the token is valid; otherwise, false.</returns>
+    public Boolean CheckAuth(string username, string jwt)
+    {
+        return jwtHelper.IsInRedis(username,jwt);
     }
 
 }
