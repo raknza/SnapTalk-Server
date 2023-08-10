@@ -46,4 +46,11 @@ public class ContactRepository : IRepository<Contact, int>
     {
         return _context.Contact.ToList<Contact>();
     }
+
+    public IEnumerable<Contact> FindById(int userId, int contactUserId){
+        return _context.Contact
+        .Where(contact => contact.userId == userId && contact.contactUserId == contactUserId)
+        .ToList();
+    }
+
 }

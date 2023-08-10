@@ -62,7 +62,7 @@ public class UserController : ControllerBase
     [HttpGet, Authorize(Roles = "user")]
     public IActionResult GetUser()
     {
-        ContactUsers user = userService.GetUser(User.Identity.Name);
+        User user = userService.GetUser(User.Identity.Name);
         if (user != null)
             return Ok(user);
         return NotFound();

@@ -58,11 +58,11 @@ public class UserService
     /// </summary>
     /// <param name="username">The username of the user to retrieve.</param>
     /// <returns>Returns the user information.</returns>
-    public ContactUsers GetUser(string username)
+    public User GetUser(string username)
     {
         User user = userRepository.FindByUsername(username);
         if(user != null)
-            return new ContactUsers(user);
+            return user;
         return null;
     }
 

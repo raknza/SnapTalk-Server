@@ -2,7 +2,7 @@ namespace android_backend.Service;
 
 using android_backend.Repositories;
 using android_backend.Models;
-
+using Microsoft.IdentityModel.Tokens;
 
 public class ContactService
 {
@@ -40,8 +40,13 @@ public class ContactService
             userId = userA.id,
             contactUserId = userB.id
         };
-        contactRepository.Create(contact);
-        return true;
+        IEnumerable<Contact> contacts = contactRepository.FindById(userA.id,userB.id);
+        if(contacts.IsNullOrEmpty()){
+            contactRepository.Create(contact);
+            return true;
+        }
+        else
+            return false;
 
     }
 
