@@ -26,7 +26,7 @@ public class JwtHelper
         signKey = new RsaSecurityKey(rsa);
     }
 
-    public string GenerateToken(string username, int expireMinutes = 30)
+    public string GenerateToken(string username, int expireMinutes = 525600)
     {
         String issuer = configuration.GetValue<string>("JwtSettings:Issuer");
 

@@ -4,6 +4,7 @@ using android_backend.Service;
 using android_backend.Helper;
 using Microsoft.AspNetCore.Authorization;
 using android_backend.Filter;
+using android_backend.Mqtt;
 
 namespace android_backend.Controllers;
 
@@ -13,14 +14,16 @@ public class UserController : ControllerBase
 {
 
     private readonly UserService userService;
+    private readonly MqttService mqttService;
 
     /// <summary>
     /// Initializes a new instance of the UserController class.
     /// </summary>
     /// <param name="userService">The user service.</param>
-    public UserController(UserService userService)
+    public UserController(UserService userService, MqttService mqttService)
     {
         this.userService = userService;
+        this.mqttService = mqttService;
     }
 
     /// <summary>
@@ -42,11 +45,24 @@ public class UserController : ControllerBase
     /// Retrieves a user's information.
     /// </summary>
     /// <returns>Returns the user information if authorized, or NotFound if the user doesn't exist.</returns>
+    [HttpGet("{username}"), Authorize(Roles = "user")]
+    public IActionResult GetUser(String username)
+    {
+        User user = userService.GetUser(username);
+        if (user != null){
+            return Ok(new ContactUsers(user));
+        }
+        return NotFound();
+    }
+
+    /// <summary>
+    /// Retrieves current users's information.
+    /// </summary>
+    /// <returns>Returns the user information if authorized, or NotFound if the user doesn't exist.</returns>
     [HttpGet, Authorize(Roles = "user")]
     public IActionResult GetUser()
     {
-        string username = User.Identity.Name;
-        User user = userService.GetUser(username);
+        ContactUsers user = userService.GetUser(User.Identity.Name);
         if (user != null)
             return Ok(user);
         return NotFound();
@@ -85,6 +101,7 @@ public class UserController : ControllerBase
     {
         LoginResult result = userService.Login(username, password);
         if (result.success){
+            mqttService.PublishMessageAsync(username,"logout").Wait();
             return Ok(new { token = result.token });
         }
         return Unauthorized(); ;

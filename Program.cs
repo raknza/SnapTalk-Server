@@ -2,12 +2,11 @@ using System.Reflection;
 using android_backend.Filter;
 using System.Net;
 using Microsoft.OpenApi.Models;
+using DotNetEnv;
 
-
+Env.Load();
 var builder = WebApplication.CreateBuilder(args);
 var startup = new android_backend.Startup(builder.Configuration);
-
-
 // Add services to the container.
 builder.Services.AddControllers();
 startup.ConfigureServices(builder.Services);

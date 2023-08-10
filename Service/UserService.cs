@@ -57,12 +57,13 @@ public class UserService
     /// Retrieves a user by username.
     /// </summary>
     /// <param name="username">The username of the user to retrieve.</param>
-    /// <returns>Returns the user information without the password.</returns>
-    public User GetUser(string username)
+    /// <returns>Returns the user information.</returns>
+    public ContactUsers GetUser(string username)
     {
         User user = userRepository.FindByUsername(username);
-        user.password = "";
-        return user;
+        if(user != null)
+            return new ContactUsers(user);
+        return null;
     }
 
     /// <summary>
