@@ -50,6 +50,21 @@ public class ContactService
 
     }
 
+    public Boolean DeleteContact(String usernameA, String usernameB){
+        User userA = userRepository.FindByUsername(usernameA);
+        User userB = userRepository.FindByUsername(usernameB);
+        if (userA == null || userB == null)
+            return false;
+        IEnumerable<Contact> contacts = contactRepository.FindById(userA.id,userB.id);
+        if(contacts.IsNullOrEmpty()){
+            return false;
+        }
+        else{
+            contactRepository.Delete(contacts.FirstOrDefault<Contact>().id);
+            return true;
+        }
+    }
+
     /// <summary>
     /// Retrieves a list of contact users for a given username.
     /// </summary>

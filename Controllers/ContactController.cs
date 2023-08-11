@@ -56,4 +56,19 @@ public class ContactController : ControllerBase
 
     }
 
+    /// <summary>
+    /// Creates a contact between the authenticated user and another user.
+    /// </summary>
+    /// <param name="username">The username of the user to create a contact with.</param>
+    /// <returns>Returns HTTP OK if the contact was created successfully, or Conflict if the contact already exists or users do not exist.</returns>
+    [HttpPost("delete"), Authorize(Roles = "user")]
+    public IActionResult Delete([FromForm] String username)
+    {
+
+        if (contactService.DeleteContact(User.Identity.Name, username) == true)
+            return Ok(new { message = "Success" });
+        return Conflict();
+
+    }
+
 }
