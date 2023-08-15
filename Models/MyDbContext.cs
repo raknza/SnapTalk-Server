@@ -5,6 +5,7 @@ public class MyDbContext : DbContext
 {
     public DbSet<User> User { get; set; }
     public DbSet<Contact> Contact { get; set; }
+    public DbSet<Message> Message { get; set;}
 
     public MyDbContext(DbContextOptions<MyDbContext> options) : base(options)
     {

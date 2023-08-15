@@ -87,7 +87,7 @@ public class UserController : ControllerBase
     {
         string username = User.Identity.Name;
         userService.UpdateUser(username, password, name, email, avatar, profile);
-        return Ok();
+        return Ok(new {message = "Success"});
     }
 
     /// <summary>

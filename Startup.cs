@@ -23,8 +23,10 @@ namespace android_backend
             services.AddRouting(options => options.LowercaseUrls = true);
             services.AddScoped<UserRepository, UserRepository>();
             services.AddScoped<ContactRepository, ContactRepository>();
+            services.AddScoped<MessageRepository, MessageRepository>();
             services.AddScoped<UserService, UserService>();
             services.AddScoped<ContactService, ContactService>();
+            services.AddScoped<MessageService, MessageService>();
             services.AddScoped<JwtAuthenticationFilter>();
             services.AddSingleton<EnvHelper>();
             services.AddSingleton<JwtHelper>();

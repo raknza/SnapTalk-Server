@@ -4,10 +4,10 @@ using android_backend.Repositories;
 using MQTTnet;
 using MQTTnet.Protocol;
 using MQTTnet.Server;
-using MQTTnet;
 using MQTTnet.Client;
-using MQTTnet.Protocol;
 using System.Text;
+using System.Text.Json;
+using Newtonsoft.Json;
 
 namespace android_backend.Mqtt
 {
@@ -16,6 +16,7 @@ namespace android_backend.Mqtt
         private readonly MqttServer _mqttServer;
         private readonly IServiceProvider _serviceProvider;
         private UserRepository _repository;
+        private MessageRepository messageRepository;
         
         IMqttClient mqttClient;
         public MqttService(IServiceProvider serviceProvider)
@@ -33,9 +34,29 @@ namespace android_backend.Mqtt
 
         }
 
+        private Task HandleMessageReceivedAsync(MqttApplicationMessageReceivedEventArgs args){
+            
+            var receivedMessage = args.ApplicationMessage;
+            var payload = Encoding.UTF8.GetString(args.ApplicationMessage.Payload);
+            
+            try
+            {
+                var message = JsonConvert.DeserializeObject<Message>(payload);
+                messageRepository.Create(message);
+                
+            }
+            catch (Newtonsoft.Json.JsonException)
+            {
+                Console.WriteLine("Failed to deserialize payload.");
+            }
+
+            return Task.CompletedTask;
+        }
+
         private Task ValidateConnectionAsync(ValidatingConnectionEventArgs args)
         {
             _repository = _serviceProvider.GetRequiredService<UserRepository>();
+            messageRepository = _serviceProvider.GetRequiredService<MessageRepository>();
             User user = _repository.FindByUsername(args.Username);
             if (user == null || !user.password.Equals(args.Password))
             {
@@ -48,15 +69,6 @@ namespace android_backend.Mqtt
         public void Start()
         {
             _mqttServer.StartAsync().Wait();
-        }
-
-        private async Task ConnectAsync(MqttClientOptions options)
-        {
-            await mqttClient.ConnectAsync(options);
-        }
-
-        public async Task PublishMessageAsync(string topic, string payload)
-        {
             if(mqttClient.IsConnected == false){
                 MqttClientOptions clientOptions = new MqttClientOptionsBuilder()
                     .WithTcpServer("127.0.0.1", 1883)
@@ -66,6 +78,17 @@ namespace android_backend.Mqtt
                     .Build();
                 ConnectAsync(clientOptions).Wait();
             }
+        }
+
+        private async Task ConnectAsync(MqttClientOptions options)
+        {
+            await mqttClient.ConnectAsync(options);
+            await mqttClient.SubscribeAsync("message/#");
+            mqttClient.ApplicationMessageReceivedAsync += HandleMessageReceivedAsync;
+        }
+
+        public async Task PublishMessageAsync(string topic, string payload)
+        {
             MqttApplicationMessage message = new MqttApplicationMessageBuilder()
                 .WithTopic(topic)
                 .WithPayload(Encoding.UTF8.GetBytes(payload)) 
@@ -73,7 +96,6 @@ namespace android_backend.Mqtt
                 .WithRetainFlag(false)
                 .Build();
             await mqttClient.PublishAsync(message);
-            Console.WriteLine(message.ConvertPayloadToString());
         }
     }
 
