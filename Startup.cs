@@ -36,10 +36,15 @@ namespace android_backend
             {
                 options.UseMySql(_config.GetConnectionString("DefaultConnection"), new MySqlServerVersion(new Version(_config.GetConnectionString("MySqlVersion"))));
             });
-            services.AddSingleton<MqttService>();
-            var mqttServiceProvider = services.BuildServiceProvider();
-            var mqttService = mqttServiceProvider.GetRequiredService<MqttService>();
-            mqttService.Start();
+            services.AddScoped<MqttServerService>();
+            services.AddScoped<MqttClientService>();
+            var mqttServerServiceProvider = services.BuildServiceProvider();
+            var mqttServerService = mqttServerServiceProvider.GetRequiredService<MqttServerService>();
+            var mqttClientService = mqttServerServiceProvider.GetRequiredService<MqttClientService>();
+            mqttServerService.Start();
+            mqttClientService.Start("start");
+            mqttClientService.Subscribe();
+            
         }
     }
 }

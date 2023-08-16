@@ -14,16 +14,17 @@ public class UserController : ControllerBase
 {
 
     private readonly UserService userService;
-    private readonly MqttService mqttService;
+    private readonly MqttClientService mqttClientService;
 
     /// <summary>
     /// Initializes a new instance of the UserController class.
     /// </summary>
     /// <param name="userService">The user service.</param>
-    public UserController(UserService userService, MqttService mqttService)
+    /// <param name="mqttClientService"></param>
+    public UserController(UserService userService, MqttClientService mqttClientService)
     {
         this.userService = userService;
-        this.mqttService = mqttService;
+        this.mqttClientService = mqttClientService;
     }
 
     /// <summary>
@@ -101,7 +102,7 @@ public class UserController : ControllerBase
     {
         LoginResult result = userService.Login(username, password);
         if (result.success){
-            mqttService.PublishMessageAsync(username,"logout").Wait();
+            mqttClientService.PublishMessage(username,"logout");
             return Ok(new { token = result.token });
         }
         return Unauthorized(); ;
