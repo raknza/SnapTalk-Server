@@ -53,5 +53,11 @@ public class MessageRepository: IRepository<Message, int>
         .Where(message => message.recipientId == userId && message.isReceived == false)
         .ToList();
     }
+    public List<Message> FindByUserUsername(string username){
+        int userId = _context.User.SingleOrDefault(x => x.username == username).id;
+        return _context.Message
+        .Where(message => message.recipientId == userId && message.isReceived == false)
+        .ToList();
+    }
 
 }

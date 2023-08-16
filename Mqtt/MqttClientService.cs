@@ -27,9 +27,16 @@ namespace android_backend.Mqtt
         private Task HandleMessageReceivedAsync(MqttApplicationMessageReceivedEventArgs args){
             var receivedMessage = args.ApplicationMessage;
             var payload = Encoding.UTF8.GetString(args.ApplicationMessage.Payload);
-            if(messageRepository == null)
-                messageRepository = serviceProvider.GetRequiredService<MessageRepository>();
-            
+            var scope = serviceProvider.CreateScope();
+            messageRepository = scope.ServiceProvider.GetRequiredService<MessageRepository>();
+            if(receivedMessage.Topic.Equals("message/received")){
+                List<Message> messages = messageRepository.FindByUserUsername(payload);
+                for(int i=0;i<messages.Count;i++){
+                    messages[i].isReceived = true;
+                    messageRepository.Update(messages[i]);
+                }
+                return Task.CompletedTask;
+            }
             try
             {
                 var message = JsonConvert.DeserializeObject<Message>(payload);
